@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  app_nginx:
+    build: ./services/app/infra/common/nginx
+    ports:
+      - "80:80"
+      - "4430:443"
+    networks:
+      default:
+        aliases:
+          - blank.local
+    depends_on:
+      - app_php
+
+  app_php:
+    build:
+      context: ./services/app
+      dockerfile: Dockerfile.local
+    volumes:
+      - ./services/app/codebase:/codebase
+    working_dir: /codebase
+    env_file:
+      - ./services/app/infra/local/.env.local
+    environment:
+      # which ipconfig >/dev/null && ipconfig getifaddr en0 || ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+'
+      - XDEBUG_REMOTE_HOST=172.17.0.1
+      - DATABASE_HOST=app_mysql
+      - DATABASE_PORT=3306
+    depends_on:
+      - app_mysql
+
+  app_mysql:
+    restart: unless-stopped
+    build: ./services/app/infra/local/mysql
+    env_file:
+      - ./services/app/infra/local/mysql/.env
+      - ./services/app/infra/local/.env.local
+    environment:
+      -
+    volumes:
+      - ./services/app/infra/local/mysql/data:/var/lib/mysql
+    ports:
+      - '33060:3306'
