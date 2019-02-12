@@ -36,8 +36,6 @@ services:
     env_file:
       - ./services/app/infra/local/mysql/.env
       - ./services/app/infra/local/.env.local
-    environment:
-      -
     volumes:
       - ./services/app/infra/local/mysql/data:/var/lib/mysql
     ports:
